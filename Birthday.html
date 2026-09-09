@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday, Mampi ✨</title>
+    <!-- Google Fonts & Libraries -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0a0915;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-pink: #ff4d6d;
+            --accent-lavender: #e0bbe4;
+            --accent-gold: #ffb7c5;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Glow Background */
+        .glow-bg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 77, 109, 0.15) 0%, rgba(224, 187, 228, 0.05) 50%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Canvas Overlay for Sparkles */
+        #sparkle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        /* Landing / Envelope Screen */
+        .landing-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 1s ease, visibility 1s ease;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .landing-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .envelope-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 100%;
+            transform: translateY(0);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .envelope-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+        }
+
+        .landing-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .landing-sub {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-pink), #c77dff);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        /* Main App Container */
+        .app-container {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 40px 20px 100px 20px;
+            opacity: 0;
+            transition: opacity 1s ease 0.5s;
+        }
+
+        .app-container.visible {
+            opacity: 1;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            line-height: 1.1;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff, var(--accent-lavender));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-title {
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* Card Base Styles */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--accent-lavender);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Music Player Module */
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .album-art {
+            width: 70px;
+            height: 70px;
+            border-radius: 14px;
+            background: linear-gradient(45deg, var(--accent-pink), var(--accent-lavender));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .track-info {
+            flex-grow: 1;
+        }
+
+        .track-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .artist-name {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+
+        .play-btn {
+            background: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Love Letter Drawers */
+        .letter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .letter-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--card-border);
+            padding: 20px 15px;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .letter-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-pink);
+        }
+
+        .letter-card span {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .letter-card p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        /* Memory Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+            border-left: 1px solid var(--card-border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 15px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-pink);
+            box-shadow: 0 0 10px var(--accent-pink);
+        }
+
+        .polaroid {
+            background: #fff;
+            padding: 12px 12px 25px 12px;
+            border-radius: 6px;
+            color: #111;
+            transform: rotate(-1deg);
+            margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            max-height: 420px;
+            object-fit: cover;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .polaroid-caption {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-top: 10px;
+            color: #222;
+            font-weight: 600;
+        }
+
+        /* Birthday Candle Section */
+        .cake-box {
+            text-align: center;
+            padding: 30px 10px;
+        }
+
+        .cake-emoji {
+            font-size: 5rem;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.2s ease;
+            filter: drop-shadow(0 0 15px rgba(255, 77, 109, 0.4));
+        }
+
+        .cake-emoji:active {
+            transform: scale(0.9);
+        }
+
+        /* Modal Layout */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-body {
+            background: #121023;
+            border: 1px solid var(--card-border);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: #f3f4f6;
+            margin-top: 15px;
+        }
+
+        /* Floating QR Action Button */
+        .qr-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            padding: 12px 18px;
+            border-radius: 30px;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            z-index: 90;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow-bg"></div>
+    <canvas id="sparkle-canvas"></canvas>
+
+    <!-- ENTRY ENVELOPE SCREEN -->
+    <div class="landing-screen" id="landingScreen">
+        <div class="envelope-card">
+            <span class="envelope-icon">💌</span>
+            <h1 class="landing-title">For My Dear Mampi</h1>
+            <p class="landing-sub">A tiny digital universe crafted just for your special day.</p>
+            <button class="btn-primary" onclick="openGreeting()">Tap to Open</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container" id="appContainer">
+        
+        <!-- Header -->
+        <header class="header-section">
+            <p class="sub-title">Happy Birthday</p>
+            <h1 class="main-title">Dearest Ipsita ❤️</h1>
+        </header>
+
+        <!-- Audio / Song Section -->
+        <div class="glass-card player-card">
+            <div class="album-art">🎵</div>
+            <div class="track-info">
+                <div class="track-title">Perfect</div>
+                <div class="artist-name">Ed Sheeran — Our Song</div>
+            </div>
+            <button class="play-btn" id="playBtn" onclick="toggleAudio()">▶</button>
+            <!-- Note: Replace the URL below with a direct link to your local 'perfect.mp3' file or audio URL -->
+            <audio id="bgAudio" src="perfect.mp3"></audio>
+        </div>
+
+        <!-- Digital Love Letters Section -->
+        <div class="glass-card">
+            <h2 class="section-title">✨ Open When...</h2>
+            <div class="letter-grid">
+                <div class="letter-card" onclick="openLetter('morning')">
+                    <span>🌅</span>
+                    <p>Morning</p>
+                </div>
+                <div class="letter-card" onclick="openLetter('miss')">
+                    <span>🌙</span>
+                    <p>You Miss Me</p>
+                </div>
+                <div class="letter-card" onclick="openLetter('smile')">
+                    <span>💖</span>
+                    <p>Need a Smile</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Timeline with Photos -->
+        <div class="glass-card">
+            <h2 class="section-title">📸 Memories with Mampi</h2>
+            <div class="timeline">
+                
+                <!-- Picture 1 -->
+                <div class="timeline-item">
+                    <h3>Peaceful Moments</h3>
+                    <p style="color: var(--text-sub); font-size:0.85rem;">That gentle, beautiful smile by the ghats.</p>
+                    <div class="polaroid">
+                        <img src="Picture_1.jpeg" alt="Ipsita at the riverbank">
+                        <div class="polaroid-caption">Serene & Beautiful ✨</div>
+                    </div>
+                </div>
+
+                <!-- Picture 2 -->
+                <div class="timeline-item">
+                    <h3>By the Riverside</h3>
+                    <p style="color: var(--text-sub); font-size:0.85rem;">Evenings made brighter just by your presence.</p>
+                    <div class="polaroid">
+                        <img src="Picture_2.jpeg" alt="Ipsita near Howrah Bridge">
+                        <div class="polaroid-caption">Always lighting up my world 💫</div>
+                    </div>
+                </div>
+
+                <!-- Picture 3 -->
+                <div class="timeline-item">
+                    <h3>Elegance & Grace</h3>
+                    <p style="color: var(--text-sub); font-size:0.85rem;">Looking absolutely stunning as always.</p>
+                    <div class="polaroid">
+                        <img src="Picture _3.jpeg" alt="Ipsita in traditional saree">
+                        <div class="polaroid-caption">My Royal Princess ❤️</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Interactive Birthday Cake -->
+        <div class="glass-card cake-box">
+            <h2 class="section-title" style="justify-content: center;">🎂 Make a Wish, Mampi</h2>
+            <p style="color: var(--text-sub); font-size:0.9rem; margin-bottom: 20px;">Tap the cake to blow out the candle!</p>
+            <div class="cake-emoji" id="cakeBtn" onclick="blowCandle()">🎂</div>
+        </div>
+
+    </div>
+
+    <!-- Floating QR Button -->
+    <button class="qr-fab" onclick="showQrModal()">
+        <span>📱</span> Scan QR
+    </button>
+
+    <!-- Generic Modal for Letters & QR -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-body">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <h3 id="modalTitle" style="font-size: 1.5rem; color: var(--accent-gold);">Modal Title</h3>
+            <div id="modalContent" class="modal-text"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SPARKLE TRAILING EFFECT ---
+        const canvas = document.getElementById('sparkle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
+                this.color = `hsl(${Math.random() * 60 + 320}, 100%, 75%)`;
+                this.alpha = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= 0.02;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function handlePointer(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            for(let i=0; i<2; i++) {
+                particles.push(new Particle(x, y));
+            }
+        }
+
+        window.addEventListener('mousemove', handlePointer);
+        window.addEventListener('touchmove', handlePointer);
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- 2. GREETING FLOW ---
+        function openGreeting() {
+            document.getElementById('landingScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.add('visible');
+            triggerConfetti();
+        }
+
+        // --- 3. AUDIO PLAYER CONTROL ---
+        const audio = document.getElementById('bgAudio');
+        const playBtn = document.getElementById('playBtn');
+
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play().catch(() => {
+                    alert("Please place 'perfect.mp3' in the same folder as this HTML file to play audio!");
+                });
+                playBtn.textContent = '⏸';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+            }
+        }
+
+        // --- 4. LOVE LETTERS MODAL DATA ---
+        const letters = {
+            morning: {
+                title: "My Cookie",
+                text: "I hope your birthday starts with the biggest smile on your face. You bring so much light, comfort, and warmth into my life (sometimes you just make me mad, but that's fine ), Ipsita. Today is all about celebrating the wonderful girl you are!"
+            },
+            miss: {
+                title: "Whenever You Miss Me 🌙",
+                text: "Just remember that no matter where we are, I will always be there to ground you. You are my peace. Close your eyes and feel my hug right there with you, Mampi."
+            },
+            smile: {
+                title: "A Little Reminder 💖",
+                text: "Listening to your voice is genuinely my best comfort; can't let you go as you help me sleep quietly. Never stop shining, my dear Ipsita. Happy Birthday!"
+            }
+        };
+
+        function openLetter(key) {
+            const letter = letters[key];
+            document.getElementById('modalTitle').textContent = letter.title;
+            document.getElementById('modalContent').textContent = letter.text;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        // --- 5. CANDLE BLOW & CONFETTI ---
+        function blowCandle() {
+            triggerConfetti();
+            document.getElementById('modalTitle').textContent = "Make a Wish, Ipsita! ✨";
+            document.getElementById('modalContent').textContent = "May all your dreams, hopes, and sweet wishes come true this year and always. Happy Birthday, Mampi!";
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        // --- 6. DYNAMIC QR CODE MODAL ---
+        function showQrModal() {
+            document.getElementById('modalTitle').textContent = "Share This Page";
+            const content = document.getElementById('modalContent');
+            content.innerHTML = "<p style='font-size:0.9rem; color:#9ca3af;'>Scan this code on another device to open Mampi's birthday experience:</p><div id='qrcode'></div>";
+            document.getElementById('modalOverlay').classList.add('active');
+
+            setTimeout(() => {
+                document.getElementById('qrcode').innerHTML = "";
+                new QRCode(document.getElementById("qrcode"), {
+                    text: window.location.href,
+                    width: 150,
+                    height: 150,
+                    colorDark : "#0a0915",
+                    colorLight : "#ffffff",
+                });
+            }, 50);
+        }
+    </script>
+</body>
+</html>
